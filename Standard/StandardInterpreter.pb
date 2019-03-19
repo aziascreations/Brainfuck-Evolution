@@ -89,6 +89,7 @@ EndProcedure
 ;-> Console Preparation
 If Not OpenConsole("Brainfuck Interpreter")
 	MessageRequester("Fatal error", "Unable to open a console.", #PB_MessageRequester_Ok | #PB_MessageRequester_Error)
+	End -1
 EndIf
 
 
@@ -226,8 +227,8 @@ CloseConsole()
 
 ; IDE Options = PureBasic 5.62 (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 224
-; FirstLine = 197
+; CursorPosition = 100
+; FirstLine = 88
 ; Folding = -
 ; EnableXP
 ; DisableDebugger
