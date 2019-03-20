@@ -16,7 +16,7 @@
 
 The goal of this project is to push the boundaries of what is achievable in Brainfuck while keeping [the spirit].
 
-Even though the language is Turing complete, it still lacks many important features that would allow it to be used like any other programming languages in/for common modern computing tasks. <i>(eg: I/O, OS API calls, Modularity, ...)</i>
+Even though the language is technically Turing complete, it still lacks many important features that would allow it to be used like any other programming languages in/for common modern computing tasks. <i>(eg: I/O, OS API calls, Modularity, ...)</i>
 
 [more stuff + git page]
 
@@ -47,7 +47,11 @@ A regular interpretor that can interpret any standard ANSI encoded text files th
 
 It has no buffered input, and will pause everytime you have to input something while adding a new line, and it will always open a file requester window for the source file.
 
-This one is mainly kept separate to show what "the bare minimum" is for an interpretor.
+This one is mainly kept separate to show what "the bare minimum" is for an interpretor and is a base for all the other interpretors in this repo.
+
+TODO: A note about the main loop from rosetta code compared the the java one.
+
+The only notable divergence from the "standard" is the fact that any char. after a ';' on a line is ignored, making links and ponctuation in comments possible.
 
 <!--<table>
 	<tr>
@@ -78,18 +82,27 @@ This one is mainly kept separate to show what "the bare minimum" is for an inter
 ### Standard Plus
 
 Same as the standard one, but it brings some QOL improvement:
-* CLI parameters (Rudimentary for the moment due to unfinished include)
-* UTF8/Unicode support (See Credits section @ filename.pbi)
-* Buffered Input (POC + Base for later interpreters)
-* Fixed error/exit codes
-* TODO: Debugger? (Only if gui, cli ui is annoying?)
-* More ?
+* Basic CLI parameters. <sup>1</sup>
+* UTF8 & Unicode support. <sup>2</sup>
+	* Source code encoding is automatically detected.
+	* The input characters can be encoded in non-ascii, but only the first byte of each char will be given when using <code>,</code> !
+* Buffered Input, with optional (opt-in) trailling null byte.
+* Fixed exit codes.
 * Some minor stuff
 
-MISSING THE IN BUFF, in main loop.
-and the instc array is still a .c type (the select too)
+<sup>1</sup>: Some stuff about cli-args.pb not being finished.
+<sup>2</sup>: Some stuff about cli-args.pb not being finished.
 
-Mostly used a a base for all the other extensions and as a "decent" standalone cli interpreter.
+The input buffer only supports strings, not raw data (an option for that will be added later).
+
+Mostly used as a base for all the other extensions.<br>
+It's use as a standalone interpreter is not recommended if you use it [alone ?].
+
+#### Examples:
+* [hello-world-ansi.bf](StandardPlus/hello-world-ansi.bf) - Hello world encoded in ANSI
+* [hello-world-utf8-signed.bf](StandardPlus/hello-world-utf8-signed.bf) - Hello world encoded in Signed UTF8
+* [buffered-input-utf8-signed.bf](StandardPlus/buffered-input-utf8-signed.bf) - Asks for some inputs, 5 times or less
+* [null-byte-string-utf8-signed.bf](StandardPlus/null-byte-string-utf8-signed.bf) - String stuff
 
 
 ### Standard Emoji 
@@ -105,6 +118,8 @@ It mostly stem from a logical idea [f.ing it up and for fun] that Me and pajowu 
 I took some of his and added more
 
 See https://github.com/pajowu/emojy
+
+TODO: Add + and - emojis
 
 <table>
 	<tr>

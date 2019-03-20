@@ -33,7 +33,8 @@ UseModule dte
 #EXIT_CODE_MALLOC_ERROR_CELLS = 10
 #EXIT_CODE_REALLOC_ERROR_CELLS = 11
 
-#EXIT_CODE_REALLOC_ERROR_CELLS_INPUT_BUFFER = 20
+#EXIT_CODE_REALLOC_ERROR_INPUT_BUFFER = 20
+#EXIT_CODE_MEALLOC_ERROR_INPUT_BUFFER = 21
 
 #EXIT_CODE_INVALID_LAUNCH_PARAM = 30
 
@@ -49,6 +50,9 @@ UseModule dte
 #MEMORY_SIZE_INITIAL = 256
 #MEMORY_SIZE_INCREMENT = 256
 
+;; Default size for the input buffer (can be overwritten with launch arguments)
+;#MEMORY_SIZE_INPUT_BUFFER = 1024
+
 ; Stack pointer (Memory pointer)
 Define SP.q = 0
 
@@ -63,7 +67,7 @@ Define *Cells
 Define *OldCells
 
 ; Will be resized when loading the code
-Dim Instructions.a(0)
+Dim Instructions$(0)
 
 ; Used in the _BracketSearch() Macro to keep count of the nested loops.
 Define BracketCount
@@ -78,7 +82,12 @@ Define SourceFileEncoding
 
 ; Interpreter Buffer(s)
 Define IsInputBufferEnabled = #True
-Define *InputBuffer, *OldInputBuffer
+Define AddNullAfterInputBuffer = #False
+Define TempInputBuffer$
+Dim InputBuffer$(0)
+
+;Define *InputBuffer, *OldInputBuffer
+;Define TempInputBuffer$ ; Used to avoid a null pointer error (Should be temporary)
 
 
 ;- Macros
@@ -94,9 +103,9 @@ Macro _BracketSearch(Direction = 1)
 	Repeat
 		; Moving the IP in the right direction
 		IP + Direction
-		If Instructions(IP) = ']'
+		If Instructions$(IP) = "]"
 			BracketCount - 1
-		ElseIf Instructions(IP) = '['
+		ElseIf Instructions$(IP) = "["
 			BracketCount + 1
 		EndIf
 	Until BracketCount = 0
@@ -118,10 +127,6 @@ Procedure PrintErrorMessage(Message$, Exitcode)
 	CloseConsole()
 	End Exitcode
 EndProcedure
-
-; TODO: maybe add it as an instruction in a module later on ?
-;Procedure DumpMemory()
-;EndProcedure
 
 
 ;- Program Code
@@ -148,21 +153,27 @@ CurrentCliParameter$ = ProgramParameter()
 While CurrentCliParameter$ <> #Null$
 	If FindString(CurrentCliParameter$, "-")
 		Select CurrentCliParameter$
-			Case "-f", "--file"
+			Case "-f", "--file", "/f", "/file"
 				SourceFilePath$ = ProgramParameter()
 			Case "-B", "--no-input-buffer"
 				IsInputBufferEnabled = #False
-			Case "-i", "--input-buffer"
-				If IsInputBufferEnabled
-					*InputBuffer = CopyMemoryString(ProgramParameter())
-				Else
-					PrintErrorMessage("Unable to use -B and -i together !", #EXIT_CODE_INVALID_LAUNCH_PARAM)
-				EndIf
+			Case "-n", "--null-after-input"
+				Debug "Null byte after input enabled !"
+				AddNullAfterInputBuffer = #True
+; 			Case "-i", "--input-buffer"
+; 				If IsInputBufferEnabled
+; 					; FIXME: Could cause a null pointer error
+; 					*InputBuffer = CopyMemoryString(ProgramParameter())
+; 				Else
+; 					PrintErrorMessage("Unable to use -B and -i together !", #EXIT_CODE_INVALID_LAUNCH_PARAM)
+; 				EndIf
 				;Case "-e", "--encoding"
 				;	CurrentCliParameter$ = ProgramParameter()
 				;Case "-c", "--code"
 				;	Direct code input ?
 		EndSelect
+		
+		CurrentCliParameter$ = ProgramParameter()
 	Else
 		SourceFilePath$ = CurrentCliParameter$
 	EndIf
@@ -204,9 +215,8 @@ If Not ReadFile(0, SourceFilePath$, SourceFileEncoding)
 	End 2
 EndIf
 
-
 ; Temporarely resizing the array to the size of the file.
-ReDim Instructions(FileSize(SourceFilePath$))
+ReDim Instructions$(FileSize(SourceFilePath$))
 
 While Eof(0) = 0
 	Line$ = ReadString(0, SourceFileEncoding)
@@ -220,28 +230,28 @@ While Eof(0) = 0
 	Line$ = ReplaceString(Line$, " ", "")
 	
 	For i=1 To Len(Line$)
-		Instructions(IP) = Asc(Mid(Line$, i, 1))
-		Debug Chr(Instructions(IP))
+		Instructions$(IP) = Mid(Line$, i, 1)
+		Debug Instructions$(IP)
 		IP + 1
 	Next
 Wend
 
 CloseFile(0)
-ReDim Instructions(IP)
+ReDim Instructions$(IP)
 IP = 0
 
 
 ;-> Main Interpreter Loop
 
-While IP < ArraySize(Instructions()) And Instructions(IP) <> #Null
-	Select(Instructions(IP))
-		Case '+'
+While IP < ArraySize(Instructions$()) And Instructions$(IP) <> #Null$
+	Select(Instructions$(IP))
+		Case "+"
 			PokeA(*Cells + SP, PeekA(*Cells + SP) + 1)
 			
-		Case '-'
+		Case "-"
 			PokeA(*Cells + SP, PeekA(*Cells + SP) - 1)
 			
-		Case '>'
+		Case ">"
 			SP + 1
 			If SP >= MemorySize(*Cells)
 				*OldCells = *Cells
@@ -256,36 +266,64 @@ While IP < ArraySize(Instructions()) And Instructions(IP) <> #Null
 				*OldCells = #Null
 			EndIf
 			
-		Case '<'
+		Case "<"
 			SP - 1
 			If SP < 0 
 				PrintErrorMessage("Memory Pointer out of range @"+Str(SP)+" !", #EXIT_CODE_OUT_OF_RANGE_STACK_POINTER)
 			EndIf
 			
-		Case '.'
+		Case "."
 			Print(Chr(PeekA(*Cells + SP)))
 			
-		Case ','
+		Case ","
+			; TODO: Allow for raw data to be given
+			; TODO: Add optional null byte to signal string end ?
+			; INFO: Maybe keep a 4 byte buffer handy to output any char/raw data ?
+			; INFO: Don't print shit here except for the prompt !
+			
 			If IsInputBufferEnabled
-				If *InputBuffer ; Or Not PeekA(*InputBuffer)
+				
+				If ArraySize(InputBuffer$())
+					PokeA(*Cells + SP, Asc(InputBuffer$(0)))
+					;Debug "Poked: "+Asc(InputBuffer$(0)) + "("+InputBuffer$(0)+")"
 					
+					; Shift array left by 1
+					For i=0 To ArraySize(InputBuffer$()) - 1
+						InputBuffer$(i) = InputBuffer$(i+1)
+					Next
+					
+					ReDim InputBuffer$(ArraySize(InputBuffer$())-1)
 				Else
-					Print(Chr(*InputBuffer))
-					
-					; Could this cause a memory leak ?
-					If MemorySize(*InputBuffer) > 1
-						MoveMemory(*InputBuffer + 1, *InputBuffer, MemorySize(*InputBuffer) - 1)
-						*OldInputBuffer = *InputBuffer
-						*InputBuffer = ReAllocateMemory(*InputBuffer, MemorySize(*InputBuffer) - 1)
+					Repeat
+						Print(#CRLF$ + "> ")
+						TempInputBuffer$ = Input()
 						
-						If Not *InputBuffer
-							FreeMemory(*OldInputBuffer)
-							PrintErrorMessage("Input buffer memory reallocation failure !", #EXIT_CODE_REALLOC_ERROR_CELLS_INPUT_BUFFER)
+						If AddNullAfterInputBuffer And Not ArraySize(InputBuffer$())
+							ReDim InputBuffer$(Len(TempInputBuffer$))
+							
+							For i=1 To ArraySize(InputBuffer$())
+								InputBuffer$(i-1) = Mid(TempInputBuffer$, i+1, 1)
+							Next
+							
+							InputBuffer$(ArraySize(InputBuffer$())-1) = #Null$
+							
+							PokeA(*Cells + SP, Asc(Left(TempInputBuffer$, 1)))
+						Else
+							If Len(TempInputBuffer$) > 1
+								ReDim InputBuffer$(Len(TempInputBuffer$) - 1)
+								
+								For i=1 To ArraySize(InputBuffer$())
+									InputBuffer$(i-1) = Mid(TempInputBuffer$, i+1, 1)
+								Next
+								
+								PokeA(*Cells + SP, Asc(Left(TempInputBuffer$, 1)))
+							ElseIf Len(TempInputBuffer$) = 1
+								PokeA(*Cells + SP, Asc(TempInputBuffer$))
+							Else
+								DebuggerWarning("No input given when asked !")
+							EndIf
 						EndIf
-					Else
-						FreeMemory(*InputBuffer)
-						*InputBuffer = #Null
-					EndIf
+					Until Len(TempInputBuffer$)
 				EndIf
 			Else
 				Define KeyPressed$
@@ -305,23 +343,22 @@ While IP < ArraySize(Instructions()) And Instructions(IP) <> #Null
 				PrintN(Chr(PeekA(*Cells + SP)))
 			EndIf
 			
-		Case '['
+		Case "["
 			If PeekA(*Cells + SP) = 0
 				_BracketSearch(1)
 			EndIf
 			
-		Case ']'
+		Case "]"
 			If PeekA(*Cells + SP) <> 0
 				_BracketSearch(-1)
 			EndIf
 			
-		Case #CR, #LF
+		Case #CR$, #LF$, #CRLF$
 			; Nothing (just here to make the debugger happy, he can be a little grumpy)
 			
 		Default
 			DebuggerWarning("Unable to process instruction: "+
-			                Chr(Instructions(IP))+
-			                " - 0d"+Str(Instructions(IP)))
+			                Instructions$(IP)) ;+" - 0d"+Instructions$(IP))
 	EndSelect
 	
 	IP + 1
@@ -332,20 +369,13 @@ Wend
 
 Print(#CRLF$+#CRLF$+"Execution finished, please press enter to exit...")
 Input()
-
-If *InputBuffer
-	FreeMemory(*InputBuffer)
-EndIf
-
 FreeMemory(*Cells)
 CloseConsole()
 
-; Is this useless ?
-;UnuseModule dte
-
 ; IDE Options = PureBasic 5.62 (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 121
-; FirstLine = 104
+; CursorPosition = 343
+; FirstLine = 330
 ; Folding = -
 ; EnableXP
+; CommandLine = -n
