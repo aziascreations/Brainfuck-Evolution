@@ -1,11 +1,11 @@
 <h1>
-	<img src="https://img.icons8.com/color/32/000000/critical-thinking.png"> Brainfuck Evolution (W.I.P)
-	<a href="readme.md" title="English">
+	<img src="https://img.icons8.com/color/32/000000/critical-thinking.png"> Brainfuck - IO Evolution (W.I.P)
+	<!--<a href="readme.md" title="English">
 		<img align="right" width="32px" height="32px" vspace="8px" src="https://i.imgur.com/YjJ8Syw.png" alt="English">
 	</a>
 	<a href="readme-fra.md" title="Français">
 		<img align="right" width="32px" height="32px" vspace="8px"src="https://i.imgur.com/ablvR3p.png" alt="Français">
-	</a>
+	</a>-->
 	<!--<a href="readme.md" title="English">
 		<img align="right" width="32px" height="32px" vspace="8px"src="https://i.imgur.com/Tnb1YyP.png" alt="English (Current)">
 	</a>
@@ -14,25 +14,33 @@
 	</a>-->
 </h1>
 
-The goal of this project is to push the boundaries of what is achievable in Brainfuck while keeping [the spirit].
+The goal of this project is to push the boundaries of what is achievable in Brainfuck sticking to some of the core principles of the language.
 
-Even though the language is technically Turing complete, it still lacks many important features that would allow it to be used like any other programming languages in/for common modern computing tasks. <i>(eg: I/O, OS API calls, Modularity, ...)</i>
+Even though Brainfuck is technically Turing complete, it still lacks many important features that would allow it to be used like any other programming languages for common modern computing tasks. <i>(eg: I/O access, OS API calls, Modularity, [add more], ...)</i>
 
-[more stuff + git page]
-
+The project was done [with text related to it]<br>
+[more stuff + git page]<br>
 techincal details are mostly available in the text.
 
 ## Summary
 
-* Brainfuck recap
-* Project Goals &/ Milestones ? why ?
-* [Interpreters](#interpreters)
-	* [Standard](#standard)
-	* [Standard Plus](#standard-plus)
-	* [Standard Emoji](#standard-emoji)
-* Something ?
-* Credits
-* [License](#license)
+&nbsp;&nbsp;&nbsp;&nbsp;● Brainfuck recap<br>
+&nbsp;&nbsp;&nbsp;&nbsp;● Project Goals &/ Milestones ? why ?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;● [Interpreters](#interpreters)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚬ [Standard](#standard)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Standard Plus](#standard-plus)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Standard Emoji](#standard-emoji)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚬ [Interlude / Note](#)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚬ [Iterative Improvements](#)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Interpreter directives](#)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Better char support](#)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Buffers](#)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [I/O & File Access](#)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;● Something ?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;● Credits<br>
+&nbsp;&nbsp;&nbsp;&nbsp;● [License](#license)<br>
+
+<!--◾◽-->
 
 ## Interpreters
 
@@ -41,8 +49,16 @@ This is list of every interpreter in this repo, in the same order as the "articl
 Every interpreter can be downloaded separately in the release section if you choose to do so.
 
 [Some may depend on others, changes may aplly to others if made later in the project.]
+<br><br>
+
 
 ### Standard
+
+The 2 standard interpreters follow the blah blah blah...
+<br><br>
+
+
+#### Standard
 A regular interpretor that can interpret any standard ANSI encoded text files that contains Brainfuck code.
 
 It has no buffered input, and will pause everytime you have to input something while adding a new line, and it will always open a file requester window for the source file.
@@ -53,33 +69,16 @@ TODO: A note about the main loop from rosetta code compared the the java one.
 
 The only notable divergence from the "standard" is the fact that any char. after a ';' on a line is ignored, making links and ponctuation in comments possible.
 
-<!--<table>
-	<tr>
-		<td colspan="420"><b>Downloads</b></td>
-	</tr>
-	<tr>
-		<td>
-			<p align="center">
-				<a href="#">
-					<img src="https://i.imgur.com/sAtIUZh.png" alt="Deb Pkg Logo" height="48px"><br>
-				</a>
-				Zip Archive<br>
-			</p>
-		</td>
-		<td>
-			<p align="center">
-				<a href="#">
-					<img src="https://i.imgur.com/UMjH2WD.png" alt="Windows 10 Logo" height="48px"><br>
-				</a>
-				Windows Executable<br>
-			</p>
-		</td>
-	</tr>
-</table>
-<br>-->
+<!--
+For the os libraries, interpreter directives could be used, but it isn't really odular enough and could cause problems when loading code pages with different fixed stuff
+And who wouldn't want to explore a dll with brainfuck (list functions + example)
+Add a note about jumping straight to the important part (final)
+The changes are more iterative and are kept separate here since ech addition will be explained in the paper and so they will be used as references.
+-->
 
+<hr>
 
-### Standard Plus
+#### Standard Plus
 
 Same as the standard one, but it brings some QOL improvement:
 * Basic CLI parameters. <sup>1</sup>
@@ -91,7 +90,7 @@ Same as the standard one, but it brings some QOL improvement:
 * Some minor stuff
 
 <sup>1</sup>: Some stuff about cli-args.pb not being finished.
-<sup>2</sup>: Some stuff about cli-args.pb not being finished.
+<sup>2</sup>: Some stuff about the encoding detection.
 
 The input buffer only supports strings, not raw data (an option for that will be added later).
 
@@ -104,8 +103,9 @@ It's use as a standalone interpreter is not recommended if you use it [alone ?].
 * [buffered-input-utf8-signed.bf](StandardPlus/buffered-input-utf8-signed.bf) - Asks for some inputs, 5 times or less
 * [null-byte-string-utf8-signed.bf](StandardPlus/null-byte-string-utf8-signed.bf) - String stuff
 
+<!--<hr>
 
-### Standard Emoji 
+#### Standard Emoji 
 
 This interpreter is mostly the same as the [Standard Plus](#standard-plus) one, except that all the instructions are replaced by emojis.
 
@@ -118,8 +118,6 @@ It mostly stem from a logical idea [f.ing it up and for fun] that Me and pajowu 
 I took some of his and added more
 
 See https://github.com/pajowu/emojy
-
-TODO: Add + and - emojis
 
 <table>
 	<tr>
@@ -158,8 +156,61 @@ TODO: Add + and - emojis
 		<td>]</td>
 		<td>↩ 🔙 🔚</td>
 	</tr>
-</table>
+</table>-->
 
+
+<br>
+
+### Interlude
+
+[Add the note about iterative stuff here]
+
+Instead of using new commands to control the charset used, use the interpreter directives to switch and when combined with flow and code control, it can easily be switched on the fly.
+
+TODO: Check the extended BF for pointers and code control instead oof shitty includes (and flow ctrl too) !
+
+
+888 NOtem insteqd of using nez co;;qnds to choose bet
+
+<br>
+
+### Improced Interpreter
+
+[Add the note about iterative stuff here]
+
+
+#### Instances
+Making parts of the interpreter modular for later, this is easier this way to separate the changes.
+
+In ImprovedIterations/Instances/
+
+Created structures
+Now uses console handles instead of purebasic default stuff. (will mostly be used later)
+
+TALK ABOUT THE SEPARATION !!!
+
+#### Interpreter directives
+
+
+#### Improved [charset] support
+
+
+#### Buffers
+
+
+#### IO & File access
+
+
+
+### Notes
+
+For each new instructions, at least a standard qwerty char/instr
+Or an ALT+x combination
+Alt +02D9
+
+
+
+TO use standard bf, you really have to generate a script and read the output or stuff (usage with the standard one)
 
 ### Buffers buffers and buffers, there can never be too many.
 

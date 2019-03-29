@@ -1,9 +1,6 @@
 *.lnk
 *.txt
-Trash/
 
 StandardPlus/Test*.pb
-TextCode/
 icons-download.md
-
 StandardPlus/Includes/cli-args.pbi
