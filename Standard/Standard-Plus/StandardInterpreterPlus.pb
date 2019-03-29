@@ -14,7 +14,7 @@ EnableExplicit
 
 ; Allows for easy identification of text file encoding.
 ; See the file or the readme for links and credits to the author and forum post.
-XIncludeFile "./Includes/AutoDetectTextEncoding.pbi"
+XIncludeFile "../../Includes/AutoDetectTextEncoding.pbi"
 UseModule dte
 
 ; Allows for easy manipulation of cli parameters.
@@ -374,8 +374,8 @@ CloseConsole()
 
 ; IDE Options = PureBasic 5.62 (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 343
-; FirstLine = 330
+; CursorPosition = 192
+; FirstLine = 129
 ; Folding = -
 ; EnableXP
 ; CommandLine = -n

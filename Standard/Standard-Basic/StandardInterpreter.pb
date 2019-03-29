@@ -102,7 +102,7 @@ EndIf
 
 ;-> Source file selection
 
-SourceFilePath$ = "./hello-world.bf"
+SourceFilePath$ = "./examples/hello-world.bf"
 ;SourceFilePath$ = OpenFileRequester("Please choose file to load", "./", "All files (*.*)|*.*", 0)
 
 If SourceFilePath$ = #Null$ Or FileSize(SourceFilePath$) < 0
@@ -227,8 +227,8 @@ CloseConsole()
 
 ; IDE Options = PureBasic 5.62 (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 100
-; FirstLine = 88
+; CursorPosition = 103
+; FirstLine = 90
 ; Folding = -
 ; EnableXP
 ; DisableDebugger
