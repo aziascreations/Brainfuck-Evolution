@@ -1,5 +1,5 @@
 <h1>
-	<img src="https://img.icons8.com/color/32/000000/critical-thinking.png"> Brainfuck - IO Evolution (W.I.P)
+	<img src="https://img.icons8.com/color/32/000000/critical-thinking.png"> Brainfuck - IO Evolution [Journey, or move the IO to the first section ?]
 	<!--<a href="readme.md" title="English">
 		<img align="right" width="32px" height="32px" vspace="8px" src="https://i.imgur.com/YjJ8Syw.png" alt="English">
 	</a>
@@ -22,16 +22,23 @@ The project was done [with text related to it]<br>
 [more stuff + git page]<br>
 techincal details are mostly available in the text.
 
+TODO: Change the structure again to have all the interpreters in one master folder and each subfolder is a variant/improvement !!!
+
+The end goal is BFIO and a version of it is available in this repo too as a clean and full one.
+And fully docummented since the readme for it is as long as this one.
+
+TODO: Cut the shit and add a See the "[Project Description and Goals](#)" section for more info.
+
 ## Summary
 
-&nbsp;&nbsp;&nbsp;&nbsp;● Brainfuck recap<br>
-&nbsp;&nbsp;&nbsp;&nbsp;● Project Goals &/ Milestones ? why ?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;● [What is Brainfuck ?](#)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;● [Project Description and Goals](#)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;● [Interpreters](#interpreters)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚬ [Standard](#standard)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Standard Plus](#standard-plus)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Standard Emoji](#standard-emoji)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚬ [Interlude / Note](#)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Standard Basic](#standard-plus)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Standard Plus](#standard-emoji)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚬ [Iterative Improvements](#)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Instance](#)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Interpreter directives](#)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Better char support](#)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Buffers](#)<br>
@@ -52,13 +59,17 @@ Every interpreter can be downloaded separately in the release section if you cho
 <br><br>
 
 
-### Standard
+### Standard 
 
 The 2 standard interpreters follow the blah blah blah...
+
+The first one is a barebone implementaiion, a POC.
+The second one is pretty much the same with a few aditions that still follow the standard pretty much.
+
+None of them are really good as standalones since they mostlly serves as bases (codebase/framework/reference???) for the rest of the project.
 <br><br>
 
-
-#### Standard
+#### Standard Basic
 A regular interpretor that can interpret any standard ANSI encoded text files that contains Brainfuck code.
 
 It has no buffered input, and will pause everytime you have to input something while adding a new line, and it will always open a file requester window for the source file.
@@ -161,7 +172,7 @@ See https://github.com/pajowu/emojy
 
 <br>
 
-### Interlude
+### Interlude ?
 
 [Add the note about iterative stuff here]
 
@@ -178,9 +189,16 @@ TODO: Check the extended BF for pointers and code control instead oof shitty inc
 
 [Add the note about iterative stuff here]
 
+The changes applied and separated here should mostly, if not only, take place in the intrerpreter and not in surrounding/includers.
+
+This fact becomes relevant with the first improvement, since most of them will not affect the cli part. (includer)
+
 
 #### Instances
-Making parts of the interpreter modular for later, this is easier this way to separate the changes.
+Making parts of the interpreter modular for later, this is easier this way to separate the changes.<br>
+This change might seem a bit big and unnessary/overdue/overdone for this, but it is motly done for later improvements.
+
+
 
 In ImprovedIterations/Instances/
 
@@ -189,11 +207,32 @@ Now uses console handles instead of purebasic default stuff. (will mostly be use
 
 TALK ABOUT THE SEPARATION !!!
 
+Mostly is about preparing for the massive extensions for later, making room and acomodating in advance for them.
+
 #### Interpreter directives
 
+#! param1;param2
+
+Default options: InputBuffer;NullByte;NoDynamicDirectives;ANSIChars;NoShowWarnings;WarningSTDErr
+
+InputBuffer <> NoInputBuffer
+
+NullByte <> NoNullByte
+
+DynamicDirectives <> NoDynamicDirectives
+
+ANSIChars || UnicodeChars || UTF8Chars
+
+ShowWarnings <> NoShowWarnings
+
+WarningSTDErr || WarningSTDOut
+
+
+TODO: Add a clean separation between simple char and string switches, different char ?
 
 #### Improved [charset] support
 
+Should be done in the includer ?
 
 #### Buffers
 
@@ -243,7 +282,9 @@ BF OS, ...
 
 ## Credits
 
+File encoding detector
 
+Rosetta code snippet
 
 ## License
 This project is licensed under the [Apache V2](LICENSE) license.
