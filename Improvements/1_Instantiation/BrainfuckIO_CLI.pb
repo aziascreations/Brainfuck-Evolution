@@ -1,4 +1,4 @@
-﻿; -----------------
+; -----------------
 ; BrainfuckIO_CLI.pb ??? - // Standard Plus Interpreter
 ; 
 ; Revision: null on 30/3/19
@@ -15,6 +15,7 @@ EnableExplicit
 
 XIncludeFile "./BrainfuckIO_Interpreter.pbi"
 
+; TODO: Detect a CTRL+C, maybe in an input(), that keeps the program open !
 
 ;- Callbacks
 
@@ -36,9 +37,15 @@ If Not *Instance
 	End 1
 EndIf
 
+*Instance\Config\AddNullAfterInputBuffer = #True
+
 Define Code$ = ""
 
-If ReadFile(0, "./Examples/hello-world-ansi.bfio", #PB_Ascii)
+;#File$ = "./Examples/hello-world-ansi.bfio"
+;#File$ = "./Examples/buffered-input-utf8-signed.bfio"
+#File$ = "./Examples/null-byte-string-utf8-signed.bfio"
+
+If ReadFile(0, #File$, #PB_UTF8) ;#PB_Ascii)
 	While Not Eof(0)
       Code$ = Code$	+ ReadString(0) + #CR$
     Wend
@@ -48,9 +55,9 @@ Else
 	End 2
 EndIf
 
-;Debug "a"
+Debug "a"
 LoadBFIOCode(*Instance, Code$, 0)
-;Debug "b"
+Debug "b"
 
 
 While UpdateBFIOInstance(*Instance)

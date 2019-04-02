@@ -73,6 +73,8 @@ EnableExplicit
 #BFIO_WARNING_EXEC_UNHANDLED_INSTRUCTION = 50
 #BFIO_WARNING_EXEC_ALREADY_FINISHED = 51
 #BFIO_WARNING_EXEC_NO_OUTPUT_HANDLER = 52
+; Should this one be an error since inputs are kinda required, and not outputs ?
+#BFIO_WARNING_EXEC_NO_INPUT_HANDLER = 53
 #BFIO_WARNING_CONFIG_IDK = 2 ; When a given config doesn't seem right
 
 
@@ -84,6 +86,7 @@ EnableExplicit
 
 ;-> Structures
 
+; Flags could be used, but I'm not working with 64k of RAM, so this will do just fine.
 Structure BFIOInstanceParameters
 	; Might be moved in the cli thingy.
 	AddNullAfterInputBuffer.b ; = #False
@@ -98,7 +101,6 @@ Structure BFIOInstance
 	Array Instructions$(0)
 	
 	; BFIO stuff
-	; Might become a pointer if needed
 	Config.BFIOInstanceParameters
 	
 	*OutputCallback.BFIOOutputCallback
@@ -106,8 +108,9 @@ Structure BFIOInstance
 	*ErrorCallback.BFIOErrorCallback
 	*WarningCallback.BFIOWarningCallback
 	
-	; TODO: A structure of buuffers and file id index for later ?
+	; TODO: A structure of buffers and file id index for later ?
 	; How would the array work if used in C ?
+	; TODO: Use a memory ptr ?
 	Array InputBuffer$(0)
 EndStructure
 
@@ -115,9 +118,12 @@ EndStructure
 ;-> Prototypes
 
 ; void BFIOOutputCallback(...)
-Prototype BFIOOutputCallback(*Instance.BFIOInstance, Output$, OutputLength.i, OutputByteLength.i) ; encoding ?
+; Maybe allow string to be given so you can output from the Stack or by Raw input ?
+;Prototype BFIOOutputCallback(*Instance.BFIOInstance) ;, Output$, OutputLength.i, OutputByteLength.i) ; encoding ?
 
-Prototype BFIOInputCallback()
+Prototype BFIOOutputCallback(*Instance.BFIOInstance, RawOutput$, RawOutputLength, RawOutputByteLength) ;, Output$, OutputLength.i, OutputByteLength.i) ; encoding ?
+
+Prototype.i BFIOInputCallback(*Instance.BFIOInstance)
 
 ; Return error/warn in a pointer value, and return the number of stuff written ?
 ; - kinda useless, just return the error and an optonal error ?
@@ -156,13 +162,22 @@ Macro _BFIOBracketSearch(Instance, Direction = 1)
 	Until BracketCount = 0
 EndMacro
 
-Macro _HandleBFIOPrint(Instance)
+Macro _HandleBFIOPrint(Instance, RawOutput="")
 	If Instance\OutputCallback <> #Null
-		;CallFunctionFast(Instance\OutputCallback, @Output, Len(Output), StringByteLength(Output))
-		CallFunctionFast(Instance\OutputCallback, Instance)
+		CallFunctionFast(Instance\OutputCallback, Instance, @RawOutput, Len(RawOutput), StringByteLength(RawOutput))
+		;CallFunctionFast(Instance\OutputCallback, Instance)
 	Else
 		DebuggerWarning("Warning: No output callback is set for the instance !")
 		_HandleBFIOInternalWarning(Instance, #BFIO_WARNING_EXEC_NO_OUTPUT_HANDLER)
+	EndIf
+EndMacro
+
+Macro _HandleBFIOInput(Instance)
+	If Instance\InputCallback <> #Null
+		CallFunctionFast(Instance\InputCallback, Instance)
+	Else
+		DebuggerWarning("Warning: No input callback is set for the instance !")
+		_HandleBFIOInternalWarning(Instance, #BFIO_WARNING_EXEC_NO_INPUT_HANDLER)
 	EndIf
 EndMacro
 
@@ -201,11 +216,20 @@ EndMacro
 ; @BFIODefaultOutputHandler.BFIOOutputCallback
 ; TODO: Assume that *Instance won't be null ?
 ;  - Yes since it should only be called by the Macro within the main valid loop.
-Procedure BFIODefaultOutputHandler(*Instance.BFIOInstance)
+Procedure BFIODefaultOutputHandler(*Instance.BFIOInstance, RawOutput$, RawOutputLength, RawOutputByteLength)
 	; Used to temporarely keep strings in memory for the ??? ; macros.
-	Protected TempOutput$ = Chr(PeekA(*Instance\Cells + *Instance\SP))
+	Protected TempOutput$
 	
-	Print(TempOutput$)
+	If RawOutput$ = #Null$ Or Not RawOutputByteLength
+		;Debug *Instance
+		;Debug *Instance\Cells
+		;Debug *Instance\SP
+		;Debug *Instance\Cells + *Instance\SP
+		TempOutput$ = Chr(PeekA(*Instance\Cells + *Instance\SP))
+		Print(TempOutput$)
+	Else
+		Print(RawOutput$)
+	EndIf
 	
 	;If *Instance
 		; [CODE]
@@ -216,9 +240,98 @@ Procedure BFIODefaultOutputHandler(*Instance.BFIOInstance)
 	;EndIf
 EndProcedure
 
-Procedure BFIODefaultInputHandler()
+; Should only manage inputs and nothing else like moving the SP !
+; TODO: Clean the stuff in the highest nested ifs
+; TODO: Handle the returned value !
+Procedure.i BFIODefaultInputHandler(*Instance.BFIOInstance)
+	Protected KeyPressed$, TempString$, TempBufferedInput$, i.i
 	
+	If *Instance\Config\UseBufferedInput
+		; Is using buffered input
+		
+		If ArraySize(*Instance\InputBuffer$())
+			; The input buffer still has stuff inside it.
+			
+			PokeA(*Instance\Cells + *Instance\SP, Asc(*Instance\InputBuffer$(0)))
+			;Debug "Poked: "+Asc(InputBuffer$(0)) + "("+InputBuffer$(0)+")"
+			
+			; Shift array left by 1
+			For i=0 To ArraySize(*Instance\InputBuffer$()) - 1
+				*Instance\InputBuffer$(i) = *Instance\InputBuffer$(i+1)
+			Next
+			
+			ReDim *Instance\InputBuffer$(ArraySize(*Instance\InputBuffer$())-1)
+		Else
+			; The input buffer is empty
+			
+			Repeat
+				;Print(#CRLF$ + "> ")
+				
+				TempString$ = #CRLF$ + "> "
+				_HandleBFIOPrint(*Instance, TempString$)
+				
+				TempBufferedInput$ = Input()
+				
+				If *Instance\Config\AddNullAfterInputBuffer And Not ArraySize(*Instance\InputBuffer$())
+					ReDim *Instance\InputBuffer$(Len(TempBufferedInput$))
+					
+					For i=1 To ArraySize(*Instance\InputBuffer$())
+						*Instance\InputBuffer$(i-1) = Mid(TempBufferedInput$, i+1, 1)
+					Next
+					
+					*Instance\InputBuffer$(ArraySize(*Instance\InputBuffer$())-1) = #Null$
+					
+					PokeA(*Instance\Cells + *Instance\SP, Asc(Left(TempBufferedInput$, 1)))
+				Else
+					If Len(TempBufferedInput$) > 1
+						ReDim *Instance\InputBuffer$(Len(TempBufferedInput$) - 1)
+						
+						For i=1 To ArraySize(*Instance\InputBuffer$())
+							*Instance\InputBuffer$(i-1) = Mid(TempBufferedInput$, i+1, 1)
+						Next
+						
+						PokeA(*Instance\Cells + *Instance\SP, Asc(Left(TempBufferedInput$, 1)))
+					ElseIf Len(TempBufferedInput$) = 1
+						PokeA(*Instance\Cells + *Instance\SP, Asc(TempBufferedInput$))
+					Else
+						DebuggerWarning("No input given when asked !")
+					EndIf
+				EndIf
+			Until Len(TempBufferedInput$)
+		EndIf
+		
+	Else
+		; No buffered input.
+		
+		;Print(#CRLF$ + "> ")
+		
+		TempString$ = #CRLF$ + "> "
+		_HandleBFIOPrint(*Instance, TempString$)
+		
+		Repeat
+			KeyPressed$ = Inkey()
+			
+			If KeyPressed$ <> ""
+				PokeA(*Instance\Cells + *Instance\SP, Asc(KeyPressed$))
+			Else
+				Delay(20)
+			EndIf
+		Until KeyPressed$ <> ""
+		
+		;PrintN(Chr(PeekA(*Cells + SP)))
+		
+		TempString$ = Chr(PeekA(*Instance\Cells + *Instance\SP)) + #CRLF$
+		_HandleBFIOPrint(*Instance, TempString$)
+	EndIf
+	
+	ProcedureReturn #False
 EndProcedure
+
+; TODO: Allow for raw data to be given (piping)
+; TODO: Add optional null byte to signal string end ?
+; INFO: Maybe keep a 4 byte buffer handy to output any char/raw data ?
+; INFO: Don't print shit here except for the prompt !
+
 
 
 ;-> Getters & Setters
@@ -279,6 +392,8 @@ Procedure CreateBFIOInstance()
 		*Instance\OutputCallback = @BFIODefaultOutputHandler()
 		*Instance\InputCallback = @BFIODefaultInputHandler()
 		
+		*Instance\Config\UseBufferedInput = #True
+		
 		; Warning and error handlers should be set manually.
 	EndIf
 	
@@ -313,11 +428,13 @@ Procedure LoadBFIOCode(*Instance.BFIOInstance, Code$, Mode.i, Position.i = -1)
 	
 	; Cleaning String
 	While FindString(Code$, #CRLF$)
-		ReplaceString(Code$, #CRLF$, #CR$)
+		Code$ = ReplaceString(Code$, #CRLF$, #CR$)
 	Wend
 	While FindString(Code$, #CR$+#CR$)
-		ReplaceString(Code$, #CR$+#CR$, #CR$)
+		Code$ = ReplaceString(Code$, #CR$+#CR$, #CR$)
 	Wend
+	
+	;Debug "Cleaning ficnished !"
 	
 	; Reading code into array
 	ReDim *Instance\Instructions$(Len(Code$))
@@ -358,6 +475,8 @@ Procedure.i UpdateBFIOInstance(*Instance.BFIOInstance)
 	Protected BracketCount
 	
 	If *Instance
+		;Debug "SP: "+*Instance\SP
+		
 		If *Instance\IP < ArraySize(*Instance\Instructions$()) And *Instance\Instructions$(*Instance\IP) <> #Null$
 			Select(*Instance\Instructions$(*Instance\IP))
 				Case "+"
@@ -394,9 +513,11 @@ Procedure.i UpdateBFIOInstance(*Instance.BFIOInstance)
 					EndIf
 					
 				Case "."
+					;Debug "OUTPUT: SP@"+*Instance\SP+" INST:"+*Instance
 					_HandleBFIOPrint(*Instance)
-				;Case ","
-					;_HandleBFIOPrint(*Instance)
+				Case ","
+					;Debug "INPUT"
+					_HandleBFIOInput(*Instance)
 					
 				Default
 					DebuggerWarning("Unhandled instruction ! -> "+*Instance\Instructions$(*Instance\IP))
@@ -423,7 +544,8 @@ EndProcedure
 
 ; IDE Options = PureBasic 5.62 (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 12
-; Folding = vh-
+; CursorPosition = 112
+; FirstLine = 94
+; Folding = -H--
 ; EnableXP
 ; CommandLine = -n
