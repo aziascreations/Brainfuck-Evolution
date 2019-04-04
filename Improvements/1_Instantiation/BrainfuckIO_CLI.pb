@@ -14,6 +14,7 @@ EnableExplicit
 ;UseModule dte
 
 XIncludeFile "./BrainfuckIO_Interpreter.pbi"
+XIncludeFile "./BrainfuckIO_Helpers.pbi"
 
 ; TODO: Detect a CTRL+C, maybe in an input(), that keeps the program open !
 
@@ -36,6 +37,9 @@ If Not *Instance
 	Debug "ERR1"
 	End 1
 EndIf
+
+*Instance\OutputCallback = @BFIODefaultOutputHandler()
+*Instance\InputCallback = @BFIODefaultInputHandler()
 
 *Instance\Config\AddNullAfterInputBuffer = #True
 
