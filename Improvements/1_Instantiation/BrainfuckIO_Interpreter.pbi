@@ -26,8 +26,8 @@ EnableExplicit
 
 ;-> > Error codes
 
-#BFIO_RETURN_NO_ERROR = 0 ; Unused, but it's the same as #False which means that the execution has not finished.
-#BFIO_RETURN_NOT_FINISHED = #BFIO_RETURN_NO_ERROR
+;#BFIO_RETURN_NO_ERROR = 0 ; Unused, but it's the same as #False which means that the execution has not finished.
+;#BFIO_RETURN_NOT_FINISHED = #BFIO_RETURN_NO_ERROR
 #BFIO_RETURN_EXECUTION_FINISHED = 1 ; Returned when update() reached the end
 
 ; Ignore this !
@@ -75,6 +75,7 @@ EnableExplicit
 #BFIO_WARNING_EXEC_NO_OUTPUT_HANDLER = 52
 ; Should this one be an error since inputs are kinda required, and not outputs ?
 #BFIO_WARNING_EXEC_NO_INPUT_HANDLER = 53
+#BFIO_WARNING_EXEC_NO_INPUT_GIVEN = 54
 #BFIO_WARNING_CONFIG_IDK = 2 ; When a given config doesn't seem right
 
 
@@ -128,6 +129,7 @@ Prototype.i BFIOInputCallback(*Instance.BFIOInstance)
 ; Return error/warn in a pointer value, and return the number of stuff written ?
 ; - kinda useless, just return the error and an optonal error ?
 ; - Kinda inconsistent :/
+; - For the out or warning ???
 
 ; int BFIOErrorCallback(...)
 Prototype.i BFIOErrorCallback(*Instance.BFIOInstance, ErrorCode) ;, ErrorMessage$) ; + msglen, msgbytelen
@@ -141,7 +143,7 @@ Prototype.i BFIOWarningCallback(*Instance.BFIOInstance, WarningCode) ;, WarningM
 ;- - - - - - - - - - - - - - - - - - - -
 ;- Macros
 
-; All macros assume that Instance is not null and a .BFIOInstance *ptr
+; All macros assume that Instance is not null and is a .BFIOInstance *ptr
 
 ; Macro originally taken from rosetta code and adapted for this project.
 ; See: https://rosettacode.org/wiki/Execute_Brain****/PureBasic
@@ -192,9 +194,12 @@ Macro _HandleBFIOInternalWarning(Instance, WarningCode)
 	EndIf
 EndMacro
 
+; Used when an error should be given to the error handler.
+; If the error handler doesn't return #False, the execution will continue.
+; Otherwise the value returned will also be returned.
 Macro _HandleBFIOInternalError(Instance, ErrorCode)
 	If Instance\ErrorCallback <> #Null
-		If CallFunctionFast(Instance\ErrorCallback, Instance, ErrorCode) ; , @(ErrorMessage))
+		If CallFunctionFast(Instance\ErrorCallback, Instance, ErrorCode)
 			ProcedureReturn ErrorCode
 		EndIf
 	Else
@@ -213,31 +218,21 @@ EndMacro
 
 ;-> Default Handlers (Optional)
 
-; @BFIODefaultOutputHandler.BFIOOutputCallback
-; TODO: Assume that *Instance won't be null ?
-;  - Yes since it should only be called by the Macro within the main valid loop.
+; Default Output Handler
+; It prints the character with the corresponding ascii character at [*Cells + SP].
+; If RawOutput$ isn't empty, and RawOutputByteLength is different than zero, RawOutput$ will be printed instead.
+; 
+; Notes:
+;   * This procedure assumes that *Instance isn't null since it should be null in the [Update(...) scope]
+; 
+; Returns:
+;   Nothing
 Procedure BFIODefaultOutputHandler(*Instance.BFIOInstance, RawOutput$, RawOutputLength, RawOutputByteLength)
-	; Used to temporarely keep strings in memory for the ??? ; macros.
-	Protected TempOutput$
-	
 	If RawOutput$ = #Null$ Or Not RawOutputByteLength
-		;Debug *Instance
-		;Debug *Instance\Cells
-		;Debug *Instance\SP
-		;Debug *Instance\Cells + *Instance\SP
-		TempOutput$ = Chr(PeekA(*Instance\Cells + *Instance\SP))
-		Print(TempOutput$)
+		Print(Chr(PeekA(*Instance\Cells + *Instance\SP)))
 	Else
 		Print(RawOutput$)
 	EndIf
-	
-	;If *Instance
-		; [CODE]
-		; if no hconsole - Should this be an error ?
-		;_HandleBFIOInternalWarning()
-	;Else
-	;	ProcedureReturn -1 ; the error code ?
-	;EndIf
 EndProcedure
 
 ; Should only manage inputs and nothing else like moving the SP !
@@ -253,7 +248,6 @@ Procedure.i BFIODefaultInputHandler(*Instance.BFIOInstance)
 			; The input buffer still has stuff inside it.
 			
 			PokeA(*Instance\Cells + *Instance\SP, Asc(*Instance\InputBuffer$(0)))
-			;Debug "Poked: "+Asc(InputBuffer$(0)) + "("+InputBuffer$(0)+")"
 			
 			; Shift array left by 1
 			For i=0 To ArraySize(*Instance\InputBuffer$()) - 1
@@ -265,14 +259,14 @@ Procedure.i BFIODefaultInputHandler(*Instance.BFIOInstance)
 			; The input buffer is empty
 			
 			Repeat
-				;Print(#CRLF$ + "> ")
-				
 				TempString$ = #CRLF$ + "> "
 				_HandleBFIOPrint(*Instance, TempString$)
 				
 				TempBufferedInput$ = Input()
 				
 				If *Instance\Config\AddNullAfterInputBuffer And Not ArraySize(*Instance\InputBuffer$())
+					; TODO: ???
+					
 					ReDim *Instance\InputBuffer$(Len(TempBufferedInput$))
 					
 					For i=1 To ArraySize(*Instance\InputBuffer$())
@@ -283,6 +277,8 @@ Procedure.i BFIODefaultInputHandler(*Instance.BFIOInstance)
 					
 					PokeA(*Instance\Cells + *Instance\SP, Asc(Left(TempBufferedInput$, 1)))
 				Else
+					; TODO: ???
+					
 					If Len(TempBufferedInput$) > 1
 						ReDim *Instance\InputBuffer$(Len(TempBufferedInput$) - 1)
 						
@@ -294,7 +290,7 @@ Procedure.i BFIODefaultInputHandler(*Instance.BFIOInstance)
 					ElseIf Len(TempBufferedInput$) = 1
 						PokeA(*Instance\Cells + *Instance\SP, Asc(TempBufferedInput$))
 					Else
-						DebuggerWarning("No input given when asked !")
+						_HandleBFIOInternalWarning(*Instance, #BFIO_WARNING_EXEC_NO_INPUT_GIVEN)
 					EndIf
 				EndIf
 			Until Len(TempBufferedInput$)
@@ -302,8 +298,6 @@ Procedure.i BFIODefaultInputHandler(*Instance.BFIOInstance)
 		
 	Else
 		; No buffered input.
-		
-		;Print(#CRLF$ + "> ")
 		
 		TempString$ = #CRLF$ + "> "
 		_HandleBFIOPrint(*Instance, TempString$)
@@ -317,8 +311,6 @@ Procedure.i BFIODefaultInputHandler(*Instance.BFIOInstance)
 				Delay(20)
 			EndIf
 		Until KeyPressed$ <> ""
-		
-		;PrintN(Chr(PeekA(*Cells + SP)))
 		
 		TempString$ = Chr(PeekA(*Instance\Cells + *Instance\SP)) + #CRLF$
 		_HandleBFIOPrint(*Instance, TempString$)
@@ -375,6 +367,11 @@ EndProcedure
 
 ;-> Core
 
+; In the helpers, make macro and procedures versions
+
+; And separate the advanced doc in it's own folder.
+
+; TODO: Change To allocate since it' not an helper
 Procedure CreateBFIOInstance()
 	Protected *Instance.BFIOInstance
 	
@@ -418,6 +415,7 @@ EndProcedure
 ; CleanString bool/flag in Mode.i ? (Or raw string with cleaning on by default ?)
 ; Return the number of instructions written or the error ?
 ; TODO: Clean array
+; Skip after # ->  ++--<< # My shit.
 Procedure LoadBFIOCode(*Instance.BFIOInstance, Code$, Mode.i, Position.i = -1)
 	Protected Line$, Char$
 	Protected i.i, j.i
@@ -513,10 +511,8 @@ Procedure.i UpdateBFIOInstance(*Instance.BFIOInstance)
 					EndIf
 					
 				Case "."
-					;Debug "OUTPUT: SP@"+*Instance\SP+" INST:"+*Instance
 					_HandleBFIOPrint(*Instance)
 				Case ","
-					;Debug "INPUT"
 					_HandleBFIOInput(*Instance)
 					
 				Default
@@ -533,8 +529,8 @@ Procedure.i UpdateBFIOInstance(*Instance.BFIOInstance)
 	Else
 		_HandleBFIOInternalError(*Instance, #BFIO_ERROR_EXEC_NULL_INSTANCE_POINTER)
 		
-		; Just here in case the execution continues past the error handler. (Avoids a null ptr err)
-		Yeet #False ; This bitch is empty !
+		; Just here in case the execution continues past the error handler. (Avoids an invalid memory access error)
+		Yeet #False ; This bitch's empty !
 	EndIf
 	
 	ProcedureReturn Bool(*Instance\IP < ArraySize(*Instance\Instructions$()) And *Instance\Instructions$(*Instance\IP) <> #Null$)
@@ -544,8 +540,8 @@ EndProcedure
 
 ; IDE Options = PureBasic 5.62 (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 112
-; FirstLine = 94
-; Folding = -H--
+; CursorPosition = 131
+; FirstLine = 114
+; Folding = -v--
 ; EnableXP
 ; CommandLine = -n

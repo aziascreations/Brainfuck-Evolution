@@ -1,9 +1,10 @@
 <h1>
-	<img src="https://img.icons8.com/color/32/000000/critical-thinking.png"> Brainfuck - IO Evolution [Journey, or move the IO to the first section ?]
-	<!--<a href="readme.md" title="English">
+	<img src="https://img.icons8.com/color/32/000000/critical-thinking.png"> Brainfuck IO - 
+	<sub><sup>Bringing pure crazy and sensitive data together</sup></sub>
+	<!----><a href="readme.md" title="English">
 		<img align="right" width="32px" height="32px" vspace="8px" src="https://i.imgur.com/YjJ8Syw.png" alt="English">
 	</a>
-	<a href="readme-fra.md" title="Français">
+	<!--<a href="readme-fra.md" title="Français">
 		<img align="right" width="32px" height="32px" vspace="8px"src="https://i.imgur.com/ablvR3p.png" alt="Français">
 	</a>-->
 	<!--<a href="readme.md" title="English">
@@ -14,20 +15,16 @@
 	</a>-->
 </h1>
 
-The goal of this project is to push the boundaries of what is achievable in Brainfuck sticking to some of the core principles of the language.
+This project follows the evolution of Brainfuck IO from a standard interpreter to what it should be in the end.
 
-Even though Brainfuck is technically Turing complete, it still lacks many important features that would allow it to be used like any other programming languages for common modern computing tasks. <i>(eg: I/O access, OS API calls, Modularity, [add more], ...)</i>
+Each step will add something new and blah blah blah...
 
-The project was done [with text related to it]<br>
-[more stuff + git page]<br>
-techincal details are mostly available in the text.
+Bringing Barinfuck in the 21st century by giving it access to important ...
 
-TODO: Change the structure again to have all the interpreters in one master folder and each subfolder is a variant/improvement !!!
+A final version of this project is available in the following repo: ...
 
 The end goal is BFIO and a version of it is available in this repo too as a clean and full one.
 And fully docummented since the readme for it is as long as this one.
-
-TODO: Cut the shit and add a See the "[Project Description and Goals](#)" section for more info.
 
 ## Summary
 
@@ -35,10 +32,10 @@ TODO: Cut the shit and add a See the "[Project Description and Goals](#)" sectio
 &nbsp;&nbsp;&nbsp;&nbsp;● [Project Description and Goals](#)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;● [Interpreters](#interpreters)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚬ [Standard](#standard)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Standard Basic](#standard-plus)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Standard Plus](#standard-emoji)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚬ [Iterative Improvements](#)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Instance](#)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Standard Basic](#standard-basic)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Standard Plus](#standard-plus)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚬ [Iterative Improvements](#iterative-improvements)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Instantiation](#instantiation)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Interpreter directives](#)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Better char support](#)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;◾ [Buffers](#)<br>
@@ -46,6 +43,18 @@ TODO: Cut the shit and add a See the "[Project Description and Goals](#)" sectio
 &nbsp;&nbsp;&nbsp;&nbsp;● Something ?<br>
 &nbsp;&nbsp;&nbsp;&nbsp;● Credits<br>
 &nbsp;&nbsp;&nbsp;&nbsp;● [License](#license)<br>
+<br>
+
+## Project Description and Goals
+
+### Goal
+The goal of this project is to push the boundaries of what is achievable in Brainfuck while keeping most of the core principles of the language.<br>
+And ???
+
+### Why ?
+Even though Brainfuck is technically Turing complete, it still lacks many important features that would allow it to be used like any other programming languages for common modern computing tasks. <i>(eg: I/O access, OS API calls, Modularity, [add more], ...)</i><br>
+So that is why we added them.
+<br><br>
 
 <!--◾◽-->
 
@@ -79,6 +88,7 @@ This one is mainly kept separate to show what "the bare minimum" is for an inter
 TODO: A note about the main loop from rosetta code compared the the java one.
 
 The only notable divergence from the "standard" is the fact that any char. after a ';' on a line is ignored, making links and ponctuation in comments possible.
+<br><br>
 
 <!--
 For the os libraries, interpreter directives could be used, but it isn't really odular enough and could cause problems when loading code pages with different fixed stuff
@@ -86,8 +96,6 @@ And who wouldn't want to explore a dll with brainfuck (list functions + example)
 Add a note about jumping straight to the important part (final)
 The changes are more iterative and are kept separate here since ech addition will be explained in the paper and so they will be used as references.
 -->
-
-<hr>
 
 #### Standard Plus
 
@@ -114,62 +122,7 @@ It's use as a standalone interpreter is not recommended if you use it [alone ?].
 * [buffered-input-utf8-signed.bf](StandardPlus/buffered-input-utf8-signed.bf) - Asks for some inputs, 5 times or less
 * [null-byte-string-utf8-signed.bf](StandardPlus/null-byte-string-utf8-signed.bf) - String stuff
 
-<!--<hr>
-
-#### Standard Emoji 
-
-This interpreter is mostly the same as the [Standard Plus](#standard-plus) one, except that all the instructions are replaced by emojis.
-
-This interpreter is more of a proof of concept for non-ascii instructions support and [mult instr glyphs].
-it is this way since appart from the joke theres not much more to it, for now.
-
-Will not support ascii and unicode or utf8 support might get murky
-
-It mostly stem from a logical idea [f.ing it up and for fun] that Me and pajowu had around the same time [separately]
-I took some of his and added more
-
-See https://github.com/pajowu/emojy
-
-<table>
-	<tr>
-		<td><b>Bf</b></td>
-		<td><b>Emoji</b></td>
-	</tr>
-	<tr>
-		<td>+</td>
-		<td>⬆ 👍 👆 ☝ 🖕</td>
-	</tr>
-	<tr>
-		<td>-</td>
-		<td>⬇ 👎 👇</td>
-	</tr>
-	<tr>
-		<td>&gt;</td>
-		<td>➡ ▶ 👉</td>
-	</tr>
-	<tr>
-		<td>&lt;</td>
-		<td>⬅ ◀ 👈</td>
-	</tr>
-	<tr>
-		<td>.</td>
-		<td>👄 ❕ ❗ 📣 📢</td>
-	</tr>
-	<tr>
-		<td>,</td>
-		<td>👂 ❔ ❓</td>
-	</tr>
-	<tr>
-		<td>[</td>
-		<td>🔁</td>
-	</tr>
-	<tr>
-		<td>]</td>
-		<td>↩ 🔙 🔚</td>
-	</tr>
-</table>-->
-
-
+<hr>
 <br>
 
 ### Interlude ?
@@ -182,24 +135,30 @@ TODO: Check the extended BF for pointers and code control instead oof shitty inc
 
 
 888 NOtem insteqd of using nez co;;qnds to choose bet
+<br><br>
 
-<br>
 
-### Improced Interpreter
+### Iterative Improvements
 
 [Add the note about iterative stuff here]
 
 The changes applied and separated here should mostly, if not only, take place in the intrerpreter and not in surrounding/includers.
 
 This fact becomes relevant with the first improvement, since most of them will not affect the cli part. (includer)
+<br><br>
 
 
-#### Instances
+#### Instantiation
+
+This change separates the core and application parts of the interpreter in separate files.<br>
+
+The core is what
+
 Making parts of the interpreter modular for later, this is easier this way to separate the changes.<br>
 This change might seem a bit big and unnessary/overdue/overdone for this, but it is motly done for later improvements.
 
 
-
+They are called handlers even tho the are technically callbacks
 In ImprovedIterations/Instances/
 
 Created structures
@@ -209,9 +168,23 @@ TALK ABOUT THE SEPARATION !!!
 
 Mostly is about preparing for the massive extensions for later, making room and acomodating in advance for them.
 
+Still has that problem with the input buffer where multi byte chars will only use the first one !
+<br><br>
+
+
 #### Interpreter directives
 
 #! param1;param2
+
+---
+OS detection/requirement ??? - Later, with the libs since that's when it will be platform dependant.
+-> static libs ? - Could make a nice middleground :/
+
+Files, only with os libs ???
+
+Move back n cell by current amount ? - How to handle it for >1 bytes numbers ?
+
+---
 
 Default options: InputBuffer;NullByte;NoDynamicDirectives;ANSIChars;NoShowWarnings;WarningSTDErr
 
@@ -229,25 +202,42 @@ WarningSTDErr || WarningSTDOut
 
 
 TODO: Add a clean separation between simple char and string switches, different char ?
+<br><br>
+
 
 #### Improved [charset] support
 
 Should be done in the includer ?
+<br><br>
+
 
 #### Buffers
+aa
+<br><br>
 
 
 #### IO & File access
+aa
+<br><br>
 
+
+#### Variable cell size ?
+aa
+<br><br>
+
+
+#### Tools
+Minifier, ???
 
 
 ### Notes
 
 For each new instructions, at least a standard qwerty char/instr
-Or an ALT+x combination
+Or an ALT+x combination ?
 Alt +02D9
+Kinda annoying...
 
-
+Most of the doc will be in the respective interpreter folder (in the iterations only ?) and will each add to it, so copy and add and no looking trought every one.
 
 TO use standard bf, you really have to generate a script and read the output or stuff (usage with the standard one)
 
